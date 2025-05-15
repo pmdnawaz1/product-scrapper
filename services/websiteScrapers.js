@@ -156,6 +156,114 @@ const flipkartScraper = ($, url) => {
             });
         }
 
+        // Extract category information
+        let category = '';
+        const categorySelectors = [
+            '._1MR4o5 ._3khuHA',
+            '._3Uw3qF li',
+            '.V31g3Y'
+        ];
+
+        for (const selector of categorySelectors) {
+            const elements = $(selector);
+            if (elements.length) {
+                category = elements.eq(1).text().trim(); // Usually second item in breadcrumbs
+                console.log(`Found category: ${category}`);
+                break;
+            }
+        }
+
+        // Extract variants (size, color)
+        const variants = {
+            sizes: [],
+            colors: []
+        };
+
+        // Look for size options
+        const sizeSelectors = [
+            '._3Oikkn ._1fGeJ5',
+            '.dyC4hf ._2OTVHf ._1q8vHb'
+        ];
+
+        for (const selector of sizeSelectors) {
+            const elements = $(selector);
+            if (elements.length) {
+                elements.each((i, el) => {
+                    variants.sizes.push($(el).text().trim());
+                });
+                console.log(`Found sizes: ${variants.sizes.join(', ')}`);
+                break;
+            }
+        }
+
+        // Look for color options
+        const colorSelectors = [
+            '._3Oikkn ._3Oikkn ._1q8vHb',
+            '.dyC4hf .dyC4hf ._1q8vHb'
+        ];
+
+        for (const selector of colorSelectors) {
+            const elements = $(selector);
+            if (elements.length) {
+                elements.each((i, el) => {
+                    variants.colors.push($(el).text().trim());
+                });
+                console.log(`Found colors: ${variants.colors.join(', ')}`);
+                break;
+            }
+        }
+
+        // Extract delivery information
+        let deliveryInfo = 'Delivery information not available';
+        const deliverySelectors = [
+            '#pincodeInputId',
+            '._3XINqE',
+            '._1KOFUF'
+        ];
+
+        for (const selector of deliverySelectors) {
+            const element = $(selector);
+            if (element.length) {
+                // Try to find text related to delivery
+                const deliveryText = element.closest('div').find('span').text().trim();
+                if (deliveryText) {
+                    deliveryInfo = deliveryText;
+                    console.log(`Found delivery info: ${deliveryInfo}`);
+                    break;
+                }
+            }
+        }
+
+        // Estimate weight if not explicitly mentioned
+        let weight = '';
+
+        // Look for weight in description or specs
+        const weightRegex = /(\d+\.?\d*)\s*(kg|g|grams|kilograms|gram|kilogram)/i;
+        const potentialWeightText = description + ' ' + $('._14cfVK').text();
+        const weightMatch = potentialWeightText.match(weightRegex);
+
+        if (weightMatch) {
+            weight = weightMatch[0];
+            console.log(`Found weight information: ${weight}`);
+        } else {
+            weight = 'Weight information not available';
+        }
+
+        // Extract additional product features
+        const features = [];
+        $('._2418kt ul li').each((i, el) => {
+            features.push($(el).text().trim());
+        });
+
+        // Get additional images
+        const additionalImages = [];
+        $('._3GnUWp li img').each((i, el) => {
+            const imgSrc = $(el).attr('src') || $(el).attr('data-src');
+            if (imgSrc && !additionalImages.includes(imgSrc)) {
+                additionalImages.push(imgSrc);
+            }
+        });
+
         // Check for JSON-LD data which is more reliable
         const jsonLdScript = $('script[type="application/ld+json"]').html();
         if (jsonLdScript) {
@@ -190,6 +298,11 @@ const flipkartScraper = ($, url) => {
                         image_url = Array.isArray(jsonLd.image) ? jsonLd.image[0] : jsonLd.image;
                         console.log(`Found image URL from JSON-LD: ${image_url}`);
                     }
+
+                    if (!category && jsonLd.category) {
+                        category = jsonLd.category;
+                        console.log(`Found category from JSON-LD: ${category}`);
+                    }
                 }
             } catch (e) {
                 console.error("Error parsing JSON-LD:", e.message);
@@ -207,7 +320,13 @@ const flipkartScraper = ($, url) => {
             price: price || 'Price not available',
             availability,
             description: description || 'Description not available',
-            image_url: image_url || ''
+            image_url: image_url || '',
+            category: category || 'Category not available',
+            variants,
+            weight,
+            delivery_info: deliveryInfo,
+            additional_features: features,
+            additional_images: additionalImages
         };
     } catch (error) {
         console.error("Flipkart scraper error:", error);
@@ -255,12 +374,94 @@ const amazonScraper = ($, url) => {
                 $('.a-dynamic-image').attr('data-old-hires');
         }
 
+        // Extract category
+        let category = '';
+        $('#wayfinding-breadcrumbs_feature_div ul li').each((i, el) => {
+            if (i === 1) { // Usually second item in breadcrumbs
+                category = $(el).text().trim();
+            }
+        });
+
+        // Extract variants
+        const variants = {
+            sizes: [],
+            colors: []
+        };
+
+        // Size options
+        $('#variation_size_name ul li').each((i, el) => {
+            const sizeText = $(el).text().trim();
+            if (sizeText) variants.sizes.push(sizeText);
+        });
+
+        // Color options
+        $('#variation_color_name ul li').each((i, el) => {
+            const colorText = $(el).attr('title')?.replace('Click to select ', '') || '';
+            if (colorText) variants.colors.push(colorText);
+        });
+
+        // Delivery information
+        let deliveryInfo = '';
+        $('#mir-layout-DELIVERY_BLOCK').each((i, el) => {
+            deliveryInfo = $(el).text().trim();
+        });
+
+        if (!deliveryInfo) {
+            deliveryInfo = $('#deliveryBlockMessage').text().trim() ||
+                'Delivery information not available';
+        }
+
+        // Extract weight
+        let weight = '';
+        $('.po-item-weight .a-span9').each((i, el) => {
+            weight = $(el).text().trim();
+        });
+
+        if (!weight) {
+            // Try to estimate from product details
+            const productDetailsText = $('#productDetails').text();
+            const weightRegex = /(\d+\.?\d*)\s*(kg|g|grams|kilograms|gram|kilogram)/i;
+            const weightMatch = productDetailsText.match(weightRegex);
+
+            if (weightMatch) {
+                weight = weightMatch[0];
+            } else {
+                weight = 'Weight information not available';
+            }
+        }
+
+        // Additional features
+        const features = [];
+        $('#feature-bullets li').each((i, el) => {
+            const featureText = $(el).text().trim();
+            if (featureText && !featureText.includes('See more')) {
+                features.push(featureText);
+            }
+        });
+
+        // Additional images
+        const additionalImages = [];
+        $('#altImages li img').each((i, el) => {
+            const imgSrc = $(el).attr('src');
+            if (imgSrc && imgSrc.includes('images/I/')) {
+                // Convert thumbnail URL to full-size image
+                const fullSizeImg = imgSrc.replace(/\._.*?_\./, '.');
+                additionalImages.push(fullSizeImg);
+            }
+        });
+
         return {
             title: title || 'Title not found',
             price: price || 'Price not available',
             availability,
             description: description || 'Description not available',
-            image_url: image_url || ''
+            image_url: image_url || '',
+            category: category || 'Category not available',
+            variants,
+            weight,
+            delivery_info: deliveryInfo,
+            additional_features: features,
+            additional_images: additionalImages
         };
     } catch (error) {
         throw new ScraperError(`Error parsing Amazon.in product: ${error.message}`);
@@ -310,6 +511,17 @@ const myntraScraper = ($, url) => {
 
         // For cases where we couldn't find data in HTML, we can try to extract from JSON-LD
         const jsonLdScript = $('script[type="application/ld+json"]').html();
+
+        let category = '';
+        const variants = {
+            sizes: [],
+            colors: []
+        };
+        let weight = 'Weight information not available';
+        let deliveryInfo = 'Delivery information not available';
+        const features = [];
+        const additionalImages = [];
+
         if (jsonLdScript) {
             try {
                 const jsonLd = JSON.parse(jsonLdScript);
@@ -322,17 +534,60 @@ const myntraScraper = ($, url) => {
                 }
                 if (!description && jsonLd.description) description = jsonLd.description;
                 if (!image_url && jsonLd.image) image_url = jsonLd.image;
+                if (jsonLd.category) category = jsonLd.category;
             } catch (e) {
                 // Silently handle JSON parsing errors
+                console.error("Error parsing Myntra JSON-LD:", e.message);
             }
         }
+
+        // Try to extract size options
+        $('.size-buttons-size-button').each((i, el) => {
+            const sizeText = $(el).text().trim();
+            if (sizeText) {
+                variants.sizes.push(sizeText);
+            }
+        });
+
+        // Extract color options
+        $('.colors-container .color-label').each((i, el) => {
+            const colorText = $(el).text().trim();
+            if (colorText) {
+                variants.colors.push(colorText);
+            }
+        });
+
+        // Try to get additional images
+        $('.image-grid-imageContainer').each((i, el) => {
+            const style = $(el).attr('style');
+            if (style && style.includes('url(')) {
+                const imgMatch = style.match(/url\(['"]?(.*?)['"]?\)/i);
+                if (imgMatch && imgMatch[1] && !additionalImages.includes(imgMatch[1])) {
+                    additionalImages.push(imgMatch[1]);
+                }
+            }
+        });
+
+        // Extract product features
+        $('.pdp-product-description-content li').each((i, el) => {
+            features.push($(el).text().trim());
+        });
+
+        // Note: For Myntra, many details are loaded dynamically, so we're returning limited data
+        // The puppeteer-based scraper in scraper.js will be more reliable for Myntra
 
         return {
             title: title || 'Title not found',
             price: price || 'Price not available',
             availability,
             description: description || 'Description not available',
-            image_url: image_url || ''
+            image_url: image_url || '',
+            category: category || 'Category not available',
+            variants,
+            weight,
+            delivery_info: deliveryInfo,
+            additional_features: features,
+            additional_images: additionalImages
         };
     } catch (error) {
         throw new ScraperError(`Error parsing Myntra product: ${error.message}`);
