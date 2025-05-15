@@ -1,5 +1,12 @@
-// services/websiteScrapers.js - Specific scrapers for each website
-const { ScraperError } = require('./scraper');
+// const { ScraperError } = require('./scraper');
+
+class ScraperError extends Error {
+    constructor(message, statusCode = 400) {
+        super(message);
+        this.name = 'ScraperError';
+        this.statusCode = statusCode;
+    }
+}
 
 /**
  * Extract product information from Flipkart

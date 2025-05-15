@@ -5,17 +5,10 @@ const puppeteer = require('puppeteer');
 const {
     flipkartScraper,
     amazonScraper,
-    myntraScraper
+    myntraScraper,
+    ScraperError
 } = require('./websiteScrapers');
 
-// Custom error class for scraper-specific errors
-class ScraperError extends Error {
-    constructor(message, statusCode = 400) {
-        super(message);
-        this.name = 'ScraperError';
-        this.statusCode = statusCode;
-    }
-}
 
 /**
  * Configure axios with user agent and timeout
