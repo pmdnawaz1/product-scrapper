@@ -1,0 +1,91 @@
+<!-- views/about.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <%- include('partials/header') %>
+
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">About the Scraper API</h4>
+                        </div>
+                        <div class="card-body">
+                            <h5>What is this?</h5>
+                            <p>
+                                This is a Node.js API for extracting product details from e-commerce websites.
+                                It currently supports Flipkart, Amazon India, and Myntra.
+                            </p>
+
+                            <h5>API Usage</h5>
+                            <p>The API provides a single endpoint for scraping product details:</p>
+
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6>Endpoint: GET /product</h6>
+                                    <p><strong>Query Parameters:</strong></p>
+                                    <ul>
+                                        <li><code>url</code> (required): Full URL of the product page from a supported
+                                            website</li>
+                                    </ul>
+
+                                    <p><strong>Example Request:</strong></p>
+                                    <pre><code>GET http://localhost:3000/product?url=https://www.flipkart.com/product-page</code></pre>
+
+                                    <p><strong>Example Response:</strong></p>
+                                    <pre><code>{
+  "success": true,
+  "data": {
+    "title": "Product Name",
+    "price": "₹1,999",
+    "availability": "In Stock",
+    "description": "Product description text...",
+    "image_url": "https://example.com/image.jpg"
+  }
+}</code></pre>
+                                </div>
+                            </div>
+
+                            <h5>Features</h5>
+                            <ul>
+                                <li>Extracts structured product data (title, price, availability, description, image
+                                    URL)</li>
+                                <li>Handles redirects and shortened URLs</li>
+                                <li>Uses headless browser for JavaScript-heavy sites</li>
+                                <li>Rate-limiting to prevent abuse</li>
+                                <li>Robust error handling</li>
+                            </ul>
+
+                            <h5>Technologies Used</h5>
+                            <ul>
+                                <li>Node.js and Express.js</li>
+                                <li>Cheerio for HTML parsing</li>
+                                <li>Puppeteer for headless browser scraping</li>
+                                <li>Axios for HTTP requests</li>
+                                <li>EJS for templating</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <%- include('partials/footer') %>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <script src="/js/main.js"></script>
+</body>
+
+</html>
