@@ -64,12 +64,13 @@
                             <div class="col">
                                 <div class="card h-100 product-card">
                                     <div class="image-container">
-                                        <% if (product.image_url) { %>
-                                            <img src="<%= product.image_url %>" class="card-img-top" alt="<%= product.title %>">
-                                        <% } else { %>
-                                            <div class="no-image">No Image Available</div>
-                                        <% } %>
+                                        <% if (product.data && product.data.images && product.data.images.length> 0) { %>
+                                            <img src="<%= product.data.images[0] %>" class="card-img-top" alt="<%= product.data.title %>">
+                                            <% } else { %>
+                                                <div class="no-image">No Image Available</div>
+                                                <% } %>
                                     </div>
+                                      
                                     <div class="card-body">
                                         <h5 class="card-title"><%= product.title %></h5>
                                         <p class="card-text price"><%= product.price %></p>

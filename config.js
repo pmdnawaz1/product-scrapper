@@ -1,8 +1,9 @@
 // config.js - Configuration settings for the API
+require('dotenv').config(); // Load environment variables from .env file
 module.exports = {
     // General API settings
     server: {
-        port: process.env.PORT || 3001,
+        port: process.env.PORT,
         env: process.env.NODE_ENV || 'development'
     },
 
@@ -25,6 +26,7 @@ module.exports = {
             'Pragma': 'no-cache'
         }
     },
+    geminiApiKey: process.env.GEMINI_API_KEY || '', // Gemini API key for AI enhancements
 
     // Supported websites
     supportedDomains: {

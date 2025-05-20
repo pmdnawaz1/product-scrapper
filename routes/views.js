@@ -73,6 +73,7 @@ router.post('/scrape', async (req, res) => {
                 });
             }
         }
+        console.log('Scraped products:', products);
 
         // Render the results page
         res.render('index', {
