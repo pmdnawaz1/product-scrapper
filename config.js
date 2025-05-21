@@ -32,7 +32,8 @@ module.exports = {
     supportedDomains: {
         flipkart: ['flipkart.com', 'www.flipkart.com', 'dl.flipkart.com'],
         amazon: ['amazon.in', 'www.amazon.in', 'amzn.in'],
-        myntra: ['myntra.com', 'www.myntra.com']
+        myntra: ['myntra.com', 'www.myntra.com'],
+        snapdeal: ['snapdeal.com', 'www.snapdeal.com'],
     },
 
     // Debug mode (set to true for detailed logging)

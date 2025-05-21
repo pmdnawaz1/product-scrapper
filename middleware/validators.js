@@ -30,7 +30,8 @@ const validateUrl = (req, res, next) => {
         const allDomains = [
             ...config.supportedDomains.flipkart,
             ...config.supportedDomains.amazon,
-            ...config.supportedDomains.myntra
+            ...config.supportedDomains.myntra,
+            ...config.supportedDomains.snapdeal
         ];
 
         const isSupported = allDomains.some(domain => hostname === domain);
